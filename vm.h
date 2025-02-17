@@ -7,3 +7,5 @@ typedef enum {
 } InterpretResult; 
 
 InterpretResult interpret(const char *source);
+void initVM();
+void freeVM();
