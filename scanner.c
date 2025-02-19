@@ -25,14 +25,15 @@ bool matchKeyword(const char *keyword, const char *lexeme, int length) {
   if (strlen(keyword) != (size_t)length) {
     return false;
   }
+  scanner.current = scanner.current + length - 1;
   // Then do character by character comparison
   return strncmp(keyword, lexeme, length) == 0;
 }
 
-TokenType keyword(const char *lexeme, int length) {
+TokenType keyword(const char *lexeme) {
   switch (lexeme[0]) {
   case 'p':
-    if (matchKeyword("print", lexeme, length))
+    if (matchKeyword("print", lexeme, 5))
       return TOKEN_PRINT;
     break;
     // ... other cases
@@ -60,13 +61,22 @@ static void skipWhitespace() {
 }
 static bool isDigit(char c) { return c >= '0' && c <= '9'; }
 
+static Token errorToken(const char *message) {
+  Token token;
+  token.type = TOKEN_ERROR;
+  token.start = message;
+  token.line = scanner.line;
+  token.length = strlen(message);
+  return token;
+}
+
 Token scanToken() {
   skipWhitespace();
   scanner.start = scanner.current;
   char c = advance();
 
   if (isAlpha(c)) {
-    TokenType tokenType = keyword(scanner.start, 5);
+    TokenType tokenType = keyword(scanner.start);
     return makeToken(tokenType);
   }
   if (isDigit(c)) {
@@ -77,5 +87,9 @@ Token scanToken() {
   case ';': {
     return makeToken(TOKEN_SEMICOLON);
   }
+  case '\0': {
+    return makeToken(TOKEN_EOF);
   }
+  }
+  return errorToken("Unexpected character.");
 }
