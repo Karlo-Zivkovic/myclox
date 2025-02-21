@@ -1,4 +1,5 @@
 #include "chunk.h"
+#include "table.h"
 
 #pragma once
 
@@ -18,6 +19,9 @@ typedef struct {
   Value *stack;
   Value *stackTop;
   int stackCapacity;
+
+  // globals
+  Table globals;
 
 } VM;
 

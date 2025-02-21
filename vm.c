@@ -2,6 +2,7 @@
 #include "chunk.h"
 #include "compiler.h"
 #include "stddef.h"
+#include "table.h"
 #include <stdlib.h>
 
 VM vm;
@@ -12,6 +13,7 @@ void initVM() {
   vm.stackCapacity = STACK_INIT;
   vm.stack = malloc(vm.stackCapacity * sizeof(Value));
   vm.stackTop = vm.stack;
+  initTable(&vm.globals);
 }
 
 void push(Value value) {
@@ -38,8 +40,9 @@ static InterpretResult run() {
       printValue(value);
       break;
     }
+    case OP_DEFINE_GLOBAL: {
+    }
     case OP_RETURN: {
-
       return INTERPRET_OK;
     }
     }

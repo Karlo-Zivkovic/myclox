@@ -32,13 +32,17 @@ bool matchKeyword(const char *keyword, const char *lexeme, int length) {
 
 TokenType keyword(const char *lexeme) {
   switch (lexeme[0]) {
+  case 'v':
+    if (matchKeyword("var", lexeme, 3))
+      return TOKEN_VAR;
+    break;
   case 'p':
     if (matchKeyword("print", lexeme, 5))
       return TOKEN_PRINT;
     break;
     // ... other cases
   }
-  return TOKEN_PRINT;
+  return TOKEN_IDENTIFIER;
 }
 
 static Token makeToken(TokenType tokenType) {
@@ -55,9 +59,18 @@ static bool isAlpha(char c) {
 }
 
 static void skipWhitespace() {
-  while (scanner.current[0] == ' ') {
+  char c = scanner.current[0];
+  switch (c) {
+  case ' ':
+  case '\n': {
     advance();
+    break;
   }
+  }
+
+  /* while (scanner.current[0] == ' ') { */
+  /*   advance(); */
+  /* } */
 }
 static bool isDigit(char c) { return c >= '0' && c <= '9'; }
 
@@ -89,6 +102,9 @@ Token scanToken() {
   }
   case '\0': {
     return makeToken(TOKEN_EOF);
+  }
+  case '=': {
+    return makeToken(TOKEN_EQUAL);
   }
   }
   return errorToken("Unexpected character.");

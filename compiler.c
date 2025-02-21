@@ -37,6 +37,19 @@ Parser parser;
 
 Chunk *currentChunk;
 
+typedef struct {
+  Token token;
+  int depth;
+} Local;
+
+typedef struct {
+  Local locals[256];
+  int localCount;
+  int currentScopeDepth;
+} Compiler;
+
+Compiler compiler;
+
 static void advance() {
   parser.previous = parser.current;
   parser.current = scanToken();
@@ -49,6 +62,7 @@ static void emitByte(uint8_t byte) {
 static ParseRule *getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 static void number();
+static void variable();
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
@@ -70,17 +84,45 @@ static void printStatement() {
   consume(TOKEN_SEMICOLON);
 }
 
+void addLocal(Token token) {
+  if (compiler.localCount >= 256) {
+    // TODO: write error function
+    // error("Too many local variables in function.");
+    return;
+  }
+  Local *local = &compiler.locals[compiler.localCount];
+  local->token = token;
+  local->depth = compiler.currentScopeDepth;
+  compiler.localCount++;
+}
+
+static void varStatement() {
+  advance();
+  uint8_t globalIndex =
+      emitConstant(makeString(parser.previous.start, parser.previous.length));
+  addLocal(parser.previous);
+  consume(TOKEN_EQUAL);
+  expression();
+  emitByte(OP_DEFINE_GLOBAL);
+  emitByte(globalIndex);
+  advance();
+}
+
 static void statement() {
   if (parser.current.type == TOKEN_PRINT) {
     advance();
     printStatement();
+  } else if (parser.current.type == TOKEN_VAR) {
+    advance();
+    varStatement();
   }
 }
 
 ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
                      [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
                      [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_EOF] = {NULL, NULL, PREC_NONE}};
+                     [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
+                     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE}};
 
 static ParseRule *getRule(TokenType type) { return &rules[type]; }
 
@@ -99,6 +141,12 @@ static void number() {
   double value = strtod(parser.previous.start, NULL);
   emitByte(OP_CONSTANT);
   emitByte(emitConstant(makeNumber(value)));
+}
+
+static void variable() {
+  emitByte(OP_GET_GLOBAL);
+  emitByte(
+      emitConstant(makeString(parser.previous.start, parser.previous.length)));
 }
 
 bool compile(const char *source, Chunk *chunk) {
