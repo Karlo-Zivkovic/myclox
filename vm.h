@@ -26,5 +26,4 @@ typedef struct {
 } VM;
 
 InterpretResult interpret(const char *source);
-void initVM();
-void freeVM();
+void debugStack(VM *vm);

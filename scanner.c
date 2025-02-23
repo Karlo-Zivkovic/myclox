@@ -63,6 +63,7 @@ static void skipWhitespace() {
   switch (c) {
   case ' ':
   case '\n': {
+    scanner.line++;
     advance();
     break;
   }
@@ -81,6 +82,24 @@ static Token errorToken(const char *message) {
   token.line = scanner.line;
   token.length = strlen(message);
   return token;
+}
+
+static bool isAtEnd() { return *scanner.current == '\0'; }
+static char peek() { return *scanner.current; }
+
+Token string() {
+  while (peek() != '"' && !isAtEnd()) {
+    if (peek() == '\n') {
+      scanner.line++;
+    }
+    advance();
+  }
+  if (isAtEnd()) {
+    return errorToken("Unterminated string");
+  }
+
+  advance();
+  return makeToken(TOKEN_STRING);
 }
 
 Token scanToken() {
@@ -105,6 +124,9 @@ Token scanToken() {
   }
   case '=': {
     return makeToken(TOKEN_EQUAL);
+  }
+  case '"': {
+    return string();
   }
   }
   return errorToken("Unexpected character.");

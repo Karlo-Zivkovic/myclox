@@ -1,6 +1,10 @@
 #include "table.h"
+#include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
+#include "value.h"
 #include <stdint.h>
+#include <string.h>
 
 void initTable(Table *table) {
   table->count = 0;
@@ -38,7 +42,8 @@ static Entry *findEntry(Entry *entries, int capacity, String *key) {
         if (tombstone == NULL)
           tombstone = entry;
       }
-    } else if (entry->key == key) {
+    } else if (entry->key->length == key->length &&
+               memcmp(entry->key->chars, key->chars, key->length) == 0) {
       // We found the key
       return entry;
     }
@@ -98,6 +103,7 @@ bool tableGet(Table *table, String *key, Value *value) {
     return false;
 
   *value = entry->value;
+  // printValue(*value);
   return true;
 }
 
@@ -109,6 +115,8 @@ bool tableDelete(Table *table, String *key) {
   if (entry->key == NULL)
     return false;
 
+  freeValue(entry->value);
+
   // Place a tombstone
   entry->key = NULL;
   entry->isDeleted = true;
@@ -117,13 +125,26 @@ bool tableDelete(Table *table, String *key) {
 
 void freeTable(Table *table) {
   // Free any string values in the table
-  for (int i = 0; i < table->capacity; i++) {
-    Entry entry = table->entries[i];
-    if (entry.key != NULL && !entry.isDeleted) {
-      freeValue(entry.value);
-    }
-  }
+  /* for (int i = 0; i < table->capacity; i++) { */
+  /*   Entry *entry = &table->entries[i]; */
+  /*   if (entry->key != NULL && !entry->isDeleted) { */
+  /*     freeValue(entry->value); */
+  /*     freeString(entry->key); // Free the key string */
+  /*   } */
+  /* } */
 
   free(table->entries);
   initTable(table);
+}
+
+void debugPrintTable(Table *table) {
+  printf("Table contents:\n");
+  for (int i = 0; i < table->capacity; i++) {
+    Entry *entry = &table->entries[i];
+    if (entry->key != NULL && !entry->isDeleted) {
+      printf("Key: %s, Value: ", entry->key->chars);
+      printValue(entry->value);
+      printf("\n");
+    }
+  }
 }

@@ -1,7 +1,9 @@
 #include "chunk.h"
+#include "common.h"
 #include "stddef.h"
 #include "stdlib.h"
 #include "value.h"
+#include <stdint.h>
 #include <stdio.h>
 
 void initChunk(Chunk *chunk) {
@@ -31,5 +33,96 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line) {
 void freeChunk(Chunk *chunk) {
   free(chunk->code);
   freeValueArray(&chunk->constants);
+  free(chunk->constants.values);
   initChunk(chunk);
+}
+
+void debugChunk(Chunk *chunk) {
+  printf("=== CHUNK ===\n");
+
+  // Print constants
+  printf("Constants:\n");
+  for (int i = 0; i < chunk->constants.count; i++) {
+    printf("[%d] ", i);
+    printValue(chunk->constants.values[i]);
+    printf("\n");
+  }
+
+  // Print bytecode
+  printf("\nBytecode:\n");
+  for (int offset = 0; offset < chunk->count;) {
+    printf("%04d ", offset);
+
+    uint8_t instruction = chunk->code[offset];
+    switch (instruction) {
+    case OP_CONSTANT: {
+      uint8_t constant = chunk->code[offset + 1];
+      printf("%-16s %4d = ", "OP_CONSTANT",
+             constant); // Changed formatting here
+      printValue(chunk->constants.values[constant]);
+      printf("\n");
+      offset += 2;
+      break;
+    }
+    case OP_GET_GLOBAL: {
+      uint8_t constant = chunk->code[offset + 1];
+      printf("%-16s %4d = ", "OP_GET_GLOBAL",
+             constant); // Changed formatting here
+      printValue(chunk->constants.values[constant]);
+      printf("\n");
+      offset += 2;
+      break;
+    }
+    case OP_DEFINE_GLOBAL: {
+      uint8_t constant = chunk->code[offset + 1];
+      printf("%-16s %4d = ", "OP_DEFINE_GLOBAL",
+             constant); // Changed formatting here
+      printValue(chunk->constants.values[constant]);
+      printf("\n");
+      offset += 2;
+      break;
+    }
+    case OP_SET_GLOBAL: {
+      uint8_t constant = chunk->code[offset + 1];
+      printf("%-16s %4d = ", "OP_SET_GLOBAL",
+             constant); // Changed formatting here
+      printValue(chunk->constants.values[constant]);
+      printf("\n");
+      offset += 2;
+      break;
+    }
+    // ... other cases remain the same but single-byte instructions can be
+    // simplified
+    case OP_RETURN:
+      printf("OP_RETURN\n"); // Removed extra formatting for simple instructions
+      offset += 1;
+      break;
+    case OP_PRINT:
+      printf("OP_PRINT\n");
+      offset += 1;
+      break;
+      // ... rest of the cases
+    }
+  }
+  printf("=== end of CHUNK ===\n\n");
+}
+
+void dumpChunkRaw(Chunk *chunk) {
+  printf("Chunk contents:\n");
+  printf("Count: %d, Capacity: %d\n", chunk->count, chunk->capacity);
+
+  printf("\nBytecode (raw):\n");
+  for (int i = 0; i < chunk->count; i++) {
+    printf("%02x ", chunk->code[i]);
+    if ((i + 1) % 16 == 0)
+      printf("\n");
+  }
+  printf("\n");
+
+  printf("\nConstants:\n");
+  for (int i = 0; i < chunk->constants.count; i++) {
+    printf("[%d] = ", i);
+    printValue(chunk->constants.values[i]);
+    printf("\n");
+  }
 }

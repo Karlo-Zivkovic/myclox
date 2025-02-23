@@ -61,13 +61,14 @@ static void emitByte(uint8_t byte) {
 
 static ParseRule *getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
+static void string();
 static void number();
 static void variable();
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
 static uint8_t emitConstant(Value value) {
-  int index = writeValueArray(&currentChunk->constants, value);
+  uint8_t index = writeValueArray(&currentChunk->constants, value);
   return index;
 }
 
@@ -100,7 +101,8 @@ static void varStatement() {
   advance();
   uint8_t globalIndex =
       emitConstant(makeString(parser.previous.start, parser.previous.length));
-  addLocal(parser.previous);
+  // FIX: Supposed to do global variable not local
+  // addLocal(parser.previous);
   consume(TOKEN_EQUAL);
   expression();
   emitByte(OP_DEFINE_GLOBAL);
@@ -122,7 +124,8 @@ ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
                      [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
                      [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
                      [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE}};
+                     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
+                     [TOKEN_STRING] = {string, NULL, PREC_NONE}};
 
 static ParseRule *getRule(TokenType type) { return &rules[type]; }
 
@@ -135,6 +138,12 @@ static void parsePrecedence(Precedence precedence) {
     ParseFn parseFn = getRule(parser.previous.type)->infix;
     parseFn();
   }
+}
+
+static void string() {
+  emitByte(OP_CONSTANT);
+  emitByte(
+      emitConstant(makeString(parser.previous.start, parser.previous.length)));
 }
 
 static void number() {

@@ -28,6 +28,7 @@ void initValueArray(ValueArray *constants);
 int writeValueArray(ValueArray *constants, Value value);
 void freeValueArray(ValueArray *constants);
 void freeValue(Value value);
+void freeString(String *string);
 Value makeNumber(double num);
 Value makeString(const char *string, int length);
 void printValue(Value value);
