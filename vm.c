@@ -111,6 +111,7 @@ InterpretResult interpret(const char *source) {
   }
   vm.chunk = &chunk;
   vm.ip = chunk.code;
+  debugChunk(vm.chunk);
 
   InterpretResult result = run();
 

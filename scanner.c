@@ -21,6 +21,13 @@ static char advance() {
   return scanner.current[-1];
 }
 
+static bool isAtEnd() { return *scanner.current == '\0'; }
+static char peek() { return *scanner.current; }
+static bool isAlpha(char c) {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+// static char peekNext() { return scanner.current[1]; }
+
 bool matchKeyword(const char *keyword, const char *lexeme, int length) {
   if (strlen(keyword) != (size_t)length) {
     return false;
@@ -42,6 +49,11 @@ TokenType keyword(const char *lexeme) {
     break;
     // ... other cases
   }
+
+  // it has to be identifier
+  while (isAlpha(peek())) {
+    advance();
+  }
   return TOKEN_IDENTIFIER;
 }
 
@@ -54,25 +66,23 @@ static Token makeToken(TokenType tokenType) {
   return token;
 }
 
-static bool isAlpha(char c) {
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
 static void skipWhitespace() {
   char c = scanner.current[0];
   switch (c) {
   case ' ':
+  case '\r':
+  case '\t': {
+    advance();
+    break;
+  }
   case '\n': {
     scanner.line++;
     advance();
     break;
   }
   }
-
-  /* while (scanner.current[0] == ' ') { */
-  /*   advance(); */
-  /* } */
 }
+
 static bool isDigit(char c) { return c >= '0' && c <= '9'; }
 
 static Token errorToken(const char *message) {
@@ -84,9 +94,6 @@ static Token errorToken(const char *message) {
   return token;
 }
 
-static bool isAtEnd() { return *scanner.current == '\0'; }
-static char peek() { return *scanner.current; }
-
 Token string() {
   while (peek() != '"' && !isAtEnd()) {
     if (peek() == '\n') {
@@ -97,7 +104,6 @@ Token string() {
   if (isAtEnd()) {
     return errorToken("Unterminated string");
   }
-
   advance();
   return makeToken(TOKEN_STRING);
 }
@@ -109,7 +115,10 @@ Token scanToken() {
 
   if (isAlpha(c)) {
     TokenType tokenType = keyword(scanner.start);
-    return makeToken(tokenType);
+    Token token = makeToken(tokenType);
+
+    return token;
+    // return makeToken(tokenType);
   }
   if (isDigit(c)) {
     return makeToken(TOKEN_NUMBER);
