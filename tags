@@ -164,7 +164,7 @@ chunk	vm.h	/^  Chunk *chunk;$/;"	m	line:15	struct:__anon7c9f9a3e0208	typeref:typ
 clean	Makefile	/^clean:$/;"	t	line:20
 code	chunk.h	/^  uint8_t *code;$/;"	m	line:40	struct:__anonc3a0ef940208	typeref:typename:uint8_t *
 command	.vscode/tasks.json	/^      "command": "\/usr\/bin\/gcc",$/;"	s	line:7	object:tasks.0
-compile	compiler.c	/^bool compile(const char *source, Chunk *chunk) {$/;"	f	line:161	typeref:typename:bool
+compile	compiler.c	/^bool compile(const char *source, Chunk *chunk) {$/;"	f	line:185	typeref:typename:bool
 compile	compiler.h	/^bool compile(const char *source, Chunk *chunk);$/;"	p	line:6	typeref:typename:bool
 compiler	compiler.c	/^Compiler compiler;$/;"	v	line:51	typeref:typename:Compiler
 configurations	.vscode/launch.json	/^  "configurations": [$/;"	a	line:3
@@ -184,7 +184,7 @@ debugChunk	chunk.c	/^void debugChunk(Chunk *chunk) {$/;"	f	line:40	typeref:typen
 debugChunk	chunk.h	/^void debugChunk(Chunk *chunk);$/;"	p	line:46	typeref:typename:void
 debugPrintTable	table.c	/^void debugPrintTable(Table *table) {$/;"	f	line:140	typeref:typename:void
 debugPrintTable	table.h	/^void debugPrintTable(Table *table);$/;"	p	line:22	typeref:typename:void
-debugStack	vm.c	/^void debugStack(VM *vm) {$/;"	f	line:84	typeref:typename:void
+debugStack	vm.c	/^void debugStack(VM *vm) {$/;"	f	line:97	typeref:typename:void
 debugStack	vm.h	/^void debugStack(VM *vm);$/;"	p	line:29	typeref:typename:void
 depth	compiler.c	/^  int depth;$/;"	m	line:42	struct:__anon8a0484b10408	typeref:typename:int	file:
 description	.vscode/launch.json	/^          "description": "Enable pretty-printing for gdb",$/;"	s	line:17	object:configurations.0.setupCommands.0
@@ -195,8 +195,9 @@ emitConstant	compiler.c	/^static uint8_t emitConstant(Value value) {$/;"	f	line:
 entries	table.h	/^  Entry *entries;$/;"	m	line:15	struct:__anonce91d8230208	typeref:typename:Entry *
 env	.vscode/tasks.json	/^        "env": {$/;"	o	line:18	object:tasks.0.options
 environment	.vscode/launch.json	/^      "environment": [],$/;"	a	line:12	object:configurations.0
-errorToken	scanner.c	/^static Token errorToken(const char *message) {$/;"	f	line:87	typeref:typename:Token	file:
+errorToken	scanner.c	/^static Token errorToken(const char *message) {$/;"	f	line:93	typeref:typename:Token	file:
 expression	compiler.c	/^static void expression() { parsePrecedence(PREC_ASSIGNMENT); }$/;"	f	line:68	typeref:typename:void	file:
+expressionStatement	compiler.c	/^static void expressionStatement() {$/;"	f	line:113	typeref:typename:void	file:
 externalConsole	.vscode/launch.json	/^      "externalConsole": false,$/;"	b	line:13	object:configurations.0
 findEntry	table.c	/^static Entry *findEntry(Entry *entries, int capacity, String *key) {$/;"	f	line:26	typeref:typename:Entry *	file:
 freeChunk	chunk.c	/^void freeChunk(Chunk *chunk) {$/;"	f	line:33	typeref:typename:void
@@ -210,7 +211,7 @@ freeValue	value.c	/^void freeValue(Value value) {$/;"	f	line:80	typeref:typename
 freeValue	value.h	/^void freeValue(Value value);$/;"	p	line:30	typeref:typename:void
 freeValueArray	value.c	/^void freeValueArray(ValueArray *constants) {$/;"	f	line:28	typeref:typename:void
 freeValueArray	value.h	/^void freeValueArray(ValueArray *constants);$/;"	p	line:29	typeref:typename:void
-getRule	compiler.c	/^static ParseRule *getRule(TokenType type) { return &rules[type]; }$/;"	f	line:130	typeref:typename:ParseRule *	file:
+getRule	compiler.c	/^static ParseRule *getRule(TokenType type) { return &rules[type]; }$/;"	f	line:145	typeref:typename:ParseRule *	file:
 getRule	compiler.c	/^static ParseRule *getRule(TokenType type);$/;"	p	line:62	typeref:typename:ParseRule *	file:
 globals	vm.h	/^  Table globals;$/;"	m	line:24	struct:__anon7c9f9a3e0208	typeref:typename:Table
 group	.vscode/tasks.json	/^      "group": {$/;"	o	line:23	object:tasks.0
@@ -226,16 +227,16 @@ initTable	table.h	/^void initTable(Table *table);$/;"	p	line:18	typeref:typename
 initVM	vm.c	/^void initVM() {$/;"	f	line:14	typeref:typename:void
 initValueArray	value.c	/^void initValueArray(ValueArray *constants) {$/;"	f	line:6	typeref:typename:void
 initValueArray	value.h	/^void initValueArray(ValueArray *constants);$/;"	p	line:27	typeref:typename:void
-interpret	vm.c	/^InterpretResult interpret(const char *source) {$/;"	f	line:103	typeref:typename:InterpretResult
+interpret	vm.c	/^InterpretResult interpret(const char *source) {$/;"	f	line:116	typeref:typename:InterpretResult
 interpret	vm.h	/^InterpretResult interpret(const char *source);$/;"	p	line:28	typeref:typename:InterpretResult
 ip	vm.h	/^  uint8_t *ip;$/;"	m	line:16	struct:__anon7c9f9a3e0208	typeref:typename:uint8_t *
-isAlpha	scanner.c	/^static bool isAlpha(char c) {$/;"	f	line:66	typeref:typename:bool	file:
+isAlpha	scanner.c	/^static bool isAlpha(char c) {$/;"	f	line:26	typeref:typename:bool	file:
 isAtEnd	scanner.c	/^static bool isAtEnd() { return *scanner.current == '\\0'; }$/;"	f	line:24	typeref:typename:bool	file:
 isDefault	.vscode/tasks.json	/^        "isDefault": true$/;"	b	line:25	object:tasks.0.group
 isDeleted	table.h	/^  bool isDeleted;$/;"	m	line:9	struct:__anonce91d8230108	typeref:typename:bool
-isDigit	scanner.c	/^static bool isDigit(char c) { return c >= '0' && c <= '9'; }$/;"	f	line:85	typeref:typename:bool	file:
+isDigit	scanner.c	/^static bool isDigit(char c) { return c >= '0' && c <= '9'; }$/;"	f	line:91	typeref:typename:bool	file:
 key	table.h	/^  String *key;$/;"	m	line:7	struct:__anonce91d8230108	typeref:typename:String *
-keyword	scanner.c	/^TokenType keyword(const char *lexeme) {$/;"	f	line:37	typeref:typename:TokenType
+keyword	scanner.c	/^TokenType keyword(const char *lexeme) {$/;"	f	line:40	typeref:typename:TokenType
 kind	.vscode/tasks.json	/^        "kind": "build",$/;"	s	line:24	object:tasks.0.group
 label	.vscode/tasks.json	/^      "label": "C\/C++: gcc build active file",$/;"	s	line:6	object:tasks.0
 length	scanner.h	/^    int length;$/;"	m	line:54	struct:__anond6e0f0650208	typeref:typename:int
@@ -250,15 +251,15 @@ makeNumber	value.c	/^Value makeNumber(double num) {$/;"	f	line:36	typeref:typena
 makeNumber	value.h	/^Value makeNumber(double num);$/;"	p	line:32	typeref:typename:Value
 makeString	value.c	/^Value makeString(const char *chars, int length) {$/;"	f	line:67	typeref:typename:Value
 makeString	value.h	/^Value makeString(const char *string, int length);$/;"	p	line:33	typeref:typename:Value
-makeToken	scanner.c	/^static Token makeToken(TokenType tokenType) {$/;"	f	line:57	typeref:typename:Token	file:
-matchKeyword	scanner.c	/^bool matchKeyword(const char *keyword, const char *lexeme, int length) {$/;"	f	line:28	typeref:typename:bool
+makeToken	scanner.c	/^static Token makeToken(TokenType tokenType) {$/;"	f	line:60	typeref:typename:Token	file:
+matchKeyword	scanner.c	/^bool matchKeyword(const char *keyword, const char *lexeme, int length) {$/;"	f	line:31	typeref:typename:bool
 miDebuggerPath	.vscode/launch.json	/^      "miDebuggerPath": "\/usr\/bin\/gdb"$/;"	s	line:23	object:configurations.0
 name	.vscode/launch.json	/^      "name": "gcc - Build and debug active file",$/;"	s	line:5	object:configurations.0
-number	compiler.c	/^static void number() {$/;"	f	line:149	typeref:typename:void	file:
+number	compiler.c	/^static void number() {$/;"	f	line:164	typeref:typename:void	file:
 number	compiler.c	/^static void number();$/;"	p	line:65	typeref:typename:void	file:
 number	value.h	/^    double number;$/;"	m	line:16	union:__anon694036180308::__anon69403618040a	typeref:typename:double
 options	.vscode/tasks.json	/^      "options": {$/;"	o	line:16	object:tasks.0
-parsePrecedence	compiler.c	/^static void parsePrecedence(Precedence precedence) {$/;"	f	line:132	typeref:typename:void	file:
+parsePrecedence	compiler.c	/^static void parsePrecedence(Precedence precedence) {$/;"	f	line:147	typeref:typename:void	file:
 parsePrecedence	compiler.c	/^static void parsePrecedence(Precedence precedence);$/;"	p	line:63	typeref:typename:void	file:
 parser	compiler.c	/^Parser parser;$/;"	v	line:36	typeref:typename:Parser
 peek	scanner.c	/^static char peek() { return *scanner.current; }$/;"	f	line:25	typeref:typename:char	file:
@@ -274,25 +275,25 @@ problemMatcher	.vscode/tasks.json	/^      "problemMatcher": ["$gcc"],$/;"	a	line
 program	.vscode/launch.json	/^      "program": "${fileDirname}\/${fileBasenameNoExtension}",$/;"	s	line:8	object:configurations.0
 push	vm.c	/^void push(Value value) {$/;"	f	line:23	typeref:typename:void
 request	.vscode/launch.json	/^      "request": "launch",$/;"	s	line:7	object:configurations.0
-rules	compiler.c	/^ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},$/;"	v	line:123	typeref:typename:ParseRule[]
+rules	compiler.c	/^ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},$/;"	v	line:137	typeref:typename:ParseRule[]
 run	Makefile	/^run: $(TARGET)$/;"	t	line:16
 run	vm.c	/^static InterpretResult run() {$/;"	f	line:39	typeref:typename:InterpretResult	file:
 runFile	main.c	/^char *runFile(const char *filename) {$/;"	f	line:5	typeref:typename:char *
-scanToken	scanner.c	/^Token scanToken() {$/;"	f	line:110	typeref:typename:Token
+scanToken	scanner.c	/^Token scanToken() {$/;"	f	line:116	typeref:typename:Token
 scanToken	scanner.h	/^Token scanToken();$/;"	p	line:58	typeref:typename:Token
 scanner	scanner.c	/^Scanner scanner;$/;"	v	line:11	typeref:typename:Scanner
 setupCommands	.vscode/launch.json	/^      "setupCommands": [$/;"	a	line:15	object:configurations.0
-skipWhitespace	scanner.c	/^static void skipWhitespace() {$/;"	f	line:70	typeref:typename:void	file:
+skipWhitespace	scanner.c	/^static void skipWhitespace() {$/;"	f	line:69	typeref:typename:void	file:
 stack	vm.h	/^  Value *stack;$/;"	m	line:19	struct:__anon7c9f9a3e0208	typeref:typename:Value *
 stackCapacity	vm.h	/^  int stackCapacity;$/;"	m	line:21	struct:__anon7c9f9a3e0208	typeref:typename:int
 stackTop	vm.h	/^  Value *stackTop;$/;"	m	line:20	struct:__anon7c9f9a3e0208	typeref:typename:Value *
 start	scanner.c	/^  const char *start;$/;"	m	line:7	struct:__anond6e0f0600108	typeref:typename:const char *	file:
 start	scanner.h	/^    const char *start;$/;"	m	line:53	struct:__anond6e0f0650208	typeref:typename:const char *
-statement	compiler.c	/^static void statement() {$/;"	f	line:113	typeref:typename:void	file:
+statement	compiler.c	/^static void statement() {$/;"	f	line:125	typeref:typename:void	file:
 stopAtEntry	.vscode/launch.json	/^      "stopAtEntry": false,$/;"	b	line:10	object:configurations.0
-string	compiler.c	/^static void string() {$/;"	f	line:143	typeref:typename:void	file:
+string	compiler.c	/^static void string() {$/;"	f	line:158	typeref:typename:void	file:
 string	compiler.c	/^static void string();$/;"	p	line:64	typeref:typename:void	file:
-string	scanner.c	/^Token string() {$/;"	f	line:96	typeref:typename:Token
+string	scanner.c	/^Token string() {$/;"	f	line:102	typeref:typename:Token
 string	value.h	/^    String *string;$/;"	m	line:17	union:__anon694036180308::__anon69403618040a	typeref:typename:String *
 tableDelete	table.c	/^bool tableDelete(Table *table, String *key) {$/;"	f	line:110	typeref:typename:bool
 tableGet	table.c	/^bool tableGet(Table *table, String *key, Value *value) {$/;"	f	line:97	typeref:typename:bool
@@ -309,7 +310,7 @@ type	value.h	/^  ValueType type;$/;"	m	line:14	struct:__anon694036180308	typeref
 value	table.h	/^  Value value;$/;"	m	line:8	struct:__anonce91d8230108	typeref:typename:Value
 values	value.h	/^  Value *values;$/;"	m	line:24	struct:__anon694036180508	typeref:typename:Value *
 varStatement	compiler.c	/^static void varStatement() {$/;"	f	line:100	typeref:typename:void	file:
-variable	compiler.c	/^static void variable() {$/;"	f	line:155	typeref:typename:void	file:
+variable	compiler.c	/^static void variable() {$/;"	f	line:170	typeref:typename:void	file:
 variable	compiler.c	/^static void variable();$/;"	p	line:66	typeref:typename:void	file:
 version	.vscode/launch.json	/^  "version": "0.2.0",$/;"	s	line:2
 version	.vscode/tasks.json	/^  "version": "2.0.0",$/;"	s	line:2

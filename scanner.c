@@ -67,19 +67,24 @@ static Token makeToken(TokenType tokenType) {
 }
 
 static void skipWhitespace() {
-  char c = scanner.current[0];
-  switch (c) {
-  case ' ':
-  case '\r':
-  case '\t': {
-    advance();
-    break;
-  }
-  case '\n': {
-    scanner.line++;
-    advance();
-    break;
-  }
+  for (;;) {
+    char c = peek();
+    switch (c) {
+    case ' ':
+    case '\r':
+    case '\t': {
+      advance();
+      break;
+    }
+    case '\n': {
+      scanner.line++;
+      advance();
+      break;
+    }
+    default: {
+      return;
+    }
+    }
   }
 }
 

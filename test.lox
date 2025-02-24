@@ -1,2 +1,6 @@
-var name = "john";
-print name;
+var a = "john";
+var b = "ana";
+var c = "denis";
+
+a = b = c;
+print a;

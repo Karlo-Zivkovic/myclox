@@ -55,9 +55,22 @@ static InterpretResult run() {
       Value key = vm.chunk->constants.values[index];
       Value value = pop();
       if (!tableSet(&vm.globals, key.as.string, value)) {
-        printf("Failed to define global variable\n");
+        printf("Failed to define global variable '%s' \n",
+               key.as.string->chars);
         return INTERPRET_RUNTIME_ERROR;
       }
+      break;
+    }
+    case OP_SET_GLOBAL: {
+      uint8_t index = *vm.ip++;
+      Value key = vm.chunk->constants.values[index];
+      Value value = vm.stackTop[-1];
+
+      if (tableSet(&vm.globals, key.as.string, value)) {
+        printf("Failed to set global variable '%s' \n", key.as.string->chars);
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      pop();
       break;
     }
     case OP_GET_GLOBAL: {

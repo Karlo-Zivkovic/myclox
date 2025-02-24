@@ -110,6 +110,18 @@ static void varStatement() {
   advance();
 }
 
+static void expressionStatement() {
+  // advance();
+  /* uint8_t globalIndex = */
+  /*     emitConstant(makeString(parser.previous.start,
+   * parser.previous.length)); */
+  expression();
+  /* emitByte(OP_DEFINE_GLOBAL); */
+  /* emitByte(globalIndex); */
+  ///
+  advance();
+}
+
 static void statement() {
   if (parser.current.type == TOKEN_PRINT) {
     advance();
@@ -117,6 +129,8 @@ static void statement() {
   } else if (parser.current.type == TOKEN_VAR) {
     advance();
     varStatement();
+  } else {
+    expressionStatement();
   }
 }
 
@@ -125,7 +139,8 @@ ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
                      [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
                      [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
                      [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
-                     [TOKEN_STRING] = {string, NULL, PREC_NONE}};
+                     [TOKEN_STRING] = {string, NULL, PREC_NONE},
+                     [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE}};
 
 static ParseRule *getRule(TokenType type) { return &rules[type]; }
 
@@ -133,7 +148,7 @@ static void parsePrecedence(Precedence precedence) {
   advance();
   ParseFn parseFn = getRule(parser.previous.type)->prefix;
   parseFn();
-  while (precedence < getRule(parser.current.type)->precedence) {
+  while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn parseFn = getRule(parser.previous.type)->infix;
     parseFn();
@@ -142,8 +157,8 @@ static void parsePrecedence(Precedence precedence) {
 
 static void string() {
   emitByte(OP_CONSTANT);
-  emitByte(
-      emitConstant(makeString(parser.previous.start, parser.previous.length)));
+  emitByte(emitConstant(
+      makeString(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
 static void number() {
@@ -153,9 +168,18 @@ static void number() {
 }
 
 static void variable() {
+  uint8_t index =
+      emitConstant(makeString(parser.previous.start, parser.previous.length));
+
+  if (parser.current.type == TOKEN_EQUAL) {
+    advance();
+    expression();
+    emitByte(OP_SET_GLOBAL);
+    emitByte(index);
+  }
+
   emitByte(OP_GET_GLOBAL);
-  emitByte(
-      emitConstant(makeString(parser.previous.start, parser.previous.length)));
+  emitByte(index);
 }
 
 bool compile(const char *source, Chunk *chunk) {
