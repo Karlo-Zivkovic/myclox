@@ -18,6 +18,7 @@ void initVM() {
   vm.stack = malloc(vm.stackCapacity * sizeof(Value));
   vm.stackTop = vm.stack;
   initTable(&vm.globals);
+  initValueArray(&vm.tempValues);
 }
 
 void push(Value value) {
@@ -33,6 +34,7 @@ Value pop() {
 static void freeVM() {
   free(vm.stack);
   freeTable(&vm.globals);
+  freeValueArray(&vm.tempValues);
   initVM();
 };
 

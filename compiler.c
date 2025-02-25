@@ -210,9 +210,13 @@ static void variable() {
 
 static void binary() {
   // if there is "5 + 3 / 1", need to handle the precedence and call the
+  TokenType operatorType = parser.previous.type;
+  ParseRule *rule = getRule(operatorType);
+  parsePrecedence((Precedence)(rule->precedence + 1));
+
   // parsePrecedence again
-  switch (parser.previous.type) {
-  case OP_ADD: {
+  switch (operatorType) {
+  case TOKEN_PLUS: {
     emitByte(OP_ADD);
     break;
   }

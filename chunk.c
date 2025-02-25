@@ -91,22 +91,27 @@ void debugChunk(Chunk *chunk) {
       offset += 2;
       break;
     }
-    // ... other cases remain the same but single-byte instructions can be
-    // simplified
-    case OP_RETURN:
+    case OP_RETURN: {
       printf("OP_RETURN\n"); // Removed extra formatting for simple instructions
       offset += 1;
       break;
-    case OP_PRINT:
+    }
+    case OP_PRINT: {
       printf("OP_PRINT\n");
       offset += 1;
       break;
-      // ... rest of the cases
+    }
+    case OP_ADD: {
+      printf("OP_ADD\n");
+      offset += 1;
+      break;
+    }
     }
   }
   printf("=== end of CHUNK ===\n\n");
 }
 
+// Not used at the moment
 void dumpChunkRaw(Chunk *chunk) {
   printf("Chunk contents:\n");
   printf("Count: %d, Capacity: %d\n", chunk->count, chunk->capacity);

@@ -1,4 +1,4 @@
 var a = "a";
 var b = "b";
-print a + b;
-// a + b = "value"; // Error at '=': Invalid assignment target.
+print a;
+a + b = "value"; // Error at '=': Invalid assignment target.

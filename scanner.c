@@ -153,6 +153,9 @@ Token scanToken() {
   case '"': {
     return string();
   }
+  case '+': {
+    return makeToken(TOKEN_PLUS);
+  }
   }
   return errorToken("Unexpected character.");
 }

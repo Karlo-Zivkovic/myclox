@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "table.h"
+#include "value.h"
 
 #pragma once
 
@@ -23,7 +24,11 @@ typedef struct {
   // globals
   Table globals;
 
+  // temporary values
+  ValueArray tempValues;
+
 } VM;
 
+extern VM vm;
 InterpretResult interpret(const char *source);
 void debugStack(VM *vm);

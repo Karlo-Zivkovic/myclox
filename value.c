@@ -1,5 +1,6 @@
 #include "value.h"
 #include "stdlib.h"
+#include "vm.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -54,6 +55,7 @@ Value addValues(Value a, Value b) {
     chars[length] = '\0'; // Null terminate
     result = makeString(chars, length);
     free(chars);
+    writeValueArray(&vm.tempValues, result);
   }
 
   // Handle error case - incompatible types
