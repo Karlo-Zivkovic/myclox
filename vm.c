@@ -61,6 +61,12 @@ static InterpretResult run() {
       }
       break;
     }
+    case OP_ADD: {
+      Value b = pop();
+      Value a = pop();
+      push(addValues(a, b));
+      break;
+    }
     case OP_SET_GLOBAL: {
       uint8_t index = *vm.ip++;
       Value key = vm.chunk->constants.values[index];

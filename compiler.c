@@ -55,6 +55,19 @@ static void advance() {
   parser.current = scanToken();
 }
 
+static void errorAt(Token *token, const char *message) {
+  fprintf(stderr, "[Line %d] Error", token->line);
+
+  if (token->type == TOKEN_EOF) {
+    fprintf(stderr, " at end");
+  } else if (token->type == TOKEN_ERROR) {
+    // Nothing
+  } else {
+    fprintf(stderr, " at '%.*s'", token->length, token->start);
+  }
+  fprintf(stderr, ": '%s\n'", message);
+}
+
 static void emitByte(uint8_t byte) {
   writeChunk(currentChunk, byte, parser.previous.line);
 }
@@ -64,6 +77,7 @@ static void parsePrecedence(Precedence precedence);
 static void string();
 static void number();
 static void variable();
+static void binary();
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
@@ -140,18 +154,30 @@ ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
                      [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
                      [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
                      [TOKEN_STRING] = {string, NULL, PREC_NONE},
-                     [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE}};
+                     [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
+                     [TOKEN_PLUS] = {NULL, binary, PREC_TERM}
+
+};
 
 static ParseRule *getRule(TokenType type) { return &rules[type]; }
 
 static void parsePrecedence(Precedence precedence) {
   advance();
-  ParseFn parseFn = getRule(parser.previous.type)->prefix;
-  parseFn();
+  ParseFn prefixFn = getRule(parser.previous.type)->prefix;
+  if (prefixFn == NULL) {
+    // TODO: Handle error: expected expression
+    return;
+  }
+  bool canAssign = precedence <= PREC_ASSIGNMENT;
+  prefixFn();
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
-    ParseFn parseFn = getRule(parser.previous.type)->infix;
-    parseFn();
+    ParseFn infixFn = getRule(parser.previous.type)->infix;
+    infixFn();
+    canAssign = false;
+  }
+  if (canAssign && parser.current.type == TOKEN_EQUAL) {
+    errorAt(&parser.current, "Invalid assignment target.");
   }
 }
 
@@ -180,6 +206,20 @@ static void variable() {
 
   emitByte(OP_GET_GLOBAL);
   emitByte(index);
+}
+
+static void binary() {
+  // if there is "5 + 3 / 1", need to handle the precedence and call the
+  // parsePrecedence again
+  switch (parser.previous.type) {
+  case OP_ADD: {
+    emitByte(OP_ADD);
+    break;
+  }
+  default: {
+    return;
+  }
+  }
 }
 
 bool compile(const char *source, Chunk *chunk) {

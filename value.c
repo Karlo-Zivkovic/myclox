@@ -33,6 +33,33 @@ void freeValueArray(ValueArray *constants) {
   initValueArray(constants);
 }
 
+Value addValues(Value a, Value b) {
+  Value result;
+
+  // Number operations
+  if (a.type == VAL_NUMBER && b.type == VAL_NUMBER) {
+    result.type = VAL_NUMBER;
+    result.as.number = a.as.number + b.as.number;
+    return result;
+  }
+
+  // String concatenation
+  if (a.type == VAL_STRING && b.type == VAL_STRING) {
+    String *aString = a.as.string;
+    String *bString = b.as.string;
+    int length = aString->length + bString->length;
+    char *chars = malloc(length + 1);
+    memcpy(chars, aString->chars, aString->length);
+    memcpy(chars + aString->length, bString->chars, bString->length);
+    chars[length] = '\0'; // Null terminate
+    result = makeString(chars, length);
+    free(chars);
+  }
+
+  // Handle error case - incompatible types
+  return result;
+}
+
 Value makeNumber(double num) {
   Value value;
   value.type = VAL_NUMBER;

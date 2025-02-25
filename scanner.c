@@ -23,6 +23,8 @@ static char advance() {
 
 static bool isAtEnd() { return *scanner.current == '\0'; }
 static char peek() { return *scanner.current; }
+static char peekNext() { return *(scanner.current + 1); }
+
 static bool isAlpha(char c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
@@ -79,6 +81,15 @@ static void skipWhitespace() {
     case '\n': {
       scanner.line++;
       advance();
+      break;
+    }
+    case '/': {
+      if (peekNext() == '/') {
+        while (peek() != '\n') {
+          advance();
+        }
+        advance();
+      }
       break;
     }
     default: {
