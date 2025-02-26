@@ -1,6 +1,5 @@
 #include "vm.h"
 #include "chunk.h"
-#include "common.h"
 #include "compiler.h"
 #include "stddef.h"
 #include "stdio.h"

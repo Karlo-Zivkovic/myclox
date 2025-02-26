@@ -3,7 +3,6 @@
 #include "scanner.h"
 #include "stdio.h"
 #include "value.h"
-#include "vm.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -21,7 +20,7 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)();
+typedef void (*ParseFn)(bool canAssign);
 
 typedef struct {
   ParseFn prefix;
@@ -32,6 +31,8 @@ typedef struct {
 typedef struct {
   Token previous;
   Token current;
+  bool hadError;
+  bool panicMode;
 } Parser;
 Parser parser;
 
@@ -50,12 +51,21 @@ typedef struct {
 
 Compiler compiler;
 
+void initCompiler() {
+  compiler.localCount = 0;
+  compiler.currentScopeDepth = 0;
+}
+
 static void advance() {
   parser.previous = parser.current;
   parser.current = scanToken();
 }
 
 static void errorAt(Token *token, const char *message) {
+  if (parser.panicMode) {
+    return;
+  }
+  parser.panicMode = true;
   fprintf(stderr, "[Line %d] Error", token->line);
 
   if (token->type == TOKEN_EOF) {
@@ -65,19 +75,46 @@ static void errorAt(Token *token, const char *message) {
   } else {
     fprintf(stderr, " at '%.*s'", token->length, token->start);
   }
-  fprintf(stderr, ": '%s\n'", message);
+  fprintf(stderr, ": '%s'\n", message);
+  parser.hadError = true;
+}
+
+static void synchronize() {
+  parser.panicMode = false;
+
+  while (parser.current.type != TOKEN_EOF) {
+    if (parser.previous.type == TOKEN_SEMICOLON)
+      return;
+
+    switch (parser.current.type) {
+    case TOKEN_CLASS:
+    case TOKEN_FUN:
+    case TOKEN_VAR:
+    case TOKEN_FOR:
+    case TOKEN_IF:
+    case TOKEN_WHILE:
+    case TOKEN_PRINT:
+    case TOKEN_RETURN:
+      return;
+    default: {
+      // Do nothing.
+    }
+    }
+    advance();
+  }
 }
 
 static void emitByte(uint8_t byte) {
   writeChunk(currentChunk, byte, parser.previous.line);
 }
 
+static void statement();
 static ParseRule *getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
-static void string();
-static void number();
-static void variable();
-static void binary();
+static void string(bool canAssign);
+static void number(bool canAssign);
+static void variable(bool canAssign);
+static void binary(bool canAssign);
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
@@ -86,17 +123,18 @@ static uint8_t emitConstant(Value value) {
   return index;
 }
 
-static void consume(TokenType type) {
+static void consume(TokenType type, const char *errorMessage) {
   if (parser.current.type == type) {
     advance();
     return;
   }
+  errorAt(&parser.current, errorMessage);
 }
 
 static void printStatement() {
   expression();
   emitByte(OP_PRINT);
-  consume(TOKEN_SEMICOLON);
+  consume(TOKEN_SEMICOLON, "Expect ';' after value in print statement");
 }
 
 void addLocal(Token token) {
@@ -117,7 +155,7 @@ static void varStatement() {
       emitConstant(makeString(parser.previous.start, parser.previous.length));
   // FIX: Supposed to do global variable not local
   // addLocal(parser.previous);
-  consume(TOKEN_EQUAL);
+  consume(TOKEN_EQUAL, "Expect '=' after variable name");
   expression();
   emitByte(OP_DEFINE_GLOBAL);
   emitByte(globalIndex);
@@ -136,6 +174,15 @@ static void expressionStatement() {
   advance();
 }
 
+static void beginScope() { compiler.currentScopeDepth++; }
+static void endScope() { compiler.currentScopeDepth--; }
+static void block() {
+  while (parser.current.type != TOKEN_RIGHT_BRACE) {
+    statement();
+  }
+  consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
+}
+
 static void statement() {
   if (parser.current.type == TOKEN_PRINT) {
     advance();
@@ -143,8 +190,18 @@ static void statement() {
   } else if (parser.current.type == TOKEN_VAR) {
     advance();
     varStatement();
+
+  } else if (parser.current.type == TOKEN_LEFT_BRACE) {
+    advance();
+    beginScope();
+    block();
+    endScope();
   } else {
     expressionStatement();
+  }
+
+  if (parser.panicMode) {
+    synchronize();
   }
 }
 
@@ -169,37 +226,45 @@ static void parsePrecedence(Precedence precedence) {
     return;
   }
   bool canAssign = precedence <= PREC_ASSIGNMENT;
-  prefixFn();
+  prefixFn(canAssign);
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixFn = getRule(parser.previous.type)->infix;
-    infixFn();
+    infixFn(canAssign);
     canAssign = false;
   }
-  if (canAssign && parser.current.type == TOKEN_EQUAL) {
+  if (!canAssign && parser.current.type == TOKEN_EQUAL) {
     errorAt(&parser.current, "Invalid assignment target.");
   }
 }
 
-static void string() {
+static void string(bool canAssign) {
+  (void)canAssign;
   emitByte(OP_CONSTANT);
   emitByte(emitConstant(
       makeString(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
-static void number() {
+static void number(bool canAssign) {
+  (void)canAssign;
   double value = strtod(parser.previous.start, NULL);
   emitByte(OP_CONSTANT);
   emitByte(emitConstant(makeNumber(value)));
 }
 
-static void variable() {
+static void variable(bool canAssign) {
+  (void)canAssign;
   uint8_t index =
       emitConstant(makeString(parser.previous.start, parser.previous.length));
 
-  if (parser.current.type == TOKEN_EQUAL) {
+  if (canAssign && parser.current.type == TOKEN_EQUAL) {
     advance();
     expression();
+    if (compiler.currentScopeDepth > 0) {
+      emitByte(OP_SET_LOCAL);
+      emitByte(index);
+    }
+
     emitByte(OP_SET_GLOBAL);
     emitByte(index);
   }
@@ -208,7 +273,8 @@ static void variable() {
   emitByte(index);
 }
 
-static void binary() {
+static void binary(bool canAssign) {
+  (void)canAssign;
   // if there is "5 + 3 / 1", need to handle the precedence and call the
   TokenType operatorType = parser.previous.type;
   ParseRule *rule = getRule(operatorType);
@@ -229,11 +295,14 @@ static void binary() {
 bool compile(const char *source, Chunk *chunk) {
   currentChunk = chunk;
   initScanner(source);
+  initCompiler();
   advance();
+  parser.hadError = false;
+  parser.panicMode = false;
 
   while (parser.current.type != TOKEN_EOF) {
     statement();
   }
   emitByte(OP_RETURN);
-  return true;
+  return !parser.hadError;
 }
