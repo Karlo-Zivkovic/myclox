@@ -91,6 +91,18 @@ void debugChunk(Chunk *chunk) {
       offset += 2;
       break;
     }
+    case OP_GET_LOCAL: {
+      uint8_t slot = chunk->code[offset + 1];
+      printf("%-16s %4d\n", "OP_GET_LOCAL", slot);
+      offset += 2;
+      break;
+    }
+    case OP_SET_LOCAL: {
+      uint8_t slot = chunk->code[offset + 1];
+      printf("%-16s %4d\n", "OP_SET_LOCAL", slot);
+      offset += 2;
+      break;
+    }
     case OP_RETURN: {
       printf("OP_RETURN\n"); // Removed extra formatting for simple instructions
       offset += 1;
@@ -103,6 +115,11 @@ void debugChunk(Chunk *chunk) {
     }
     case OP_ADD: {
       printf("OP_ADD\n");
+      offset += 1;
+      break;
+    }
+    case OP_POP: {
+      printf("OP_POP\n");
       offset += 1;
       break;
     }

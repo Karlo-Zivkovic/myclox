@@ -93,6 +93,25 @@ static InterpretResult run() {
       push(value);
       break;
     }
+    case OP_GET_LOCAL: {
+      uint8_t slot = *vm.ip++;
+      push(vm.stack[slot]);
+      break;
+    }
+    case OP_SET_LOCAL: {
+      uint8_t slot = *vm.ip++;
+      Value value = vm.stackTop[-1];
+      vm.stack[slot] = value;
+      break;
+    }
+    case OP_NIL: {
+      // TODO: SOLVE THE NILL VALUE, and push it on the stack
+      break;
+    }
+    case OP_POP: {
+      pop();
+      break;
+    }
     case OP_RETURN: {
       return INTERPRET_OK;
     }

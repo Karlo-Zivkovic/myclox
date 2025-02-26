@@ -5,6 +5,7 @@
 #include "value.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef enum {
   PREC_NONE,
@@ -39,7 +40,7 @@ Parser parser;
 Chunk *currentChunk;
 
 typedef struct {
-  Token token;
+  Token name;
   int depth;
 } Local;
 
@@ -71,8 +72,7 @@ static void errorAt(Token *token, const char *message) {
   if (token->type == TOKEN_EOF) {
     fprintf(stderr, " at end");
   } else if (token->type == TOKEN_ERROR) {
-    // Nothing
-  } else {
+    // Nothing } else {
     fprintf(stderr, " at '%.*s'", token->length, token->start);
   }
   fprintf(stderr, ": '%s'\n", message);
@@ -144,22 +144,42 @@ void addLocal(Token token) {
     return;
   }
   Local *local = &compiler.locals[compiler.localCount];
-  local->token = token;
+  local->name = token;
   local->depth = compiler.currentScopeDepth;
   compiler.localCount++;
 }
 
 static void varStatement() {
-  advance();
-  uint8_t globalIndex =
-      emitConstant(makeString(parser.previous.start, parser.previous.length));
-  // FIX: Supposed to do global variable not local
-  // addLocal(parser.previous);
-  consume(TOKEN_EQUAL, "Expect '=' after variable name");
-  expression();
-  emitByte(OP_DEFINE_GLOBAL);
-  emitByte(globalIndex);
-  advance();
+  consume(TOKEN_IDENTIFIER, "Expect variable name.");
+  if (compiler.currentScopeDepth == 0) {
+    uint8_t globalIndex =
+        emitConstant(makeString(parser.previous.start, parser.previous.length));
+
+    if (parser.current.type == TOKEN_EQUAL) {
+      consume(TOKEN_EQUAL, "Expect '=' after variable name");
+      expression();
+    } else {
+      emitByte(OP_NIL);
+    }
+
+    emitByte(OP_DEFINE_GLOBAL);
+    emitByte(globalIndex);
+    consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
+  } else {
+    // declare local variable
+    Local local;
+    local.name = parser.previous;
+    local.depth = compiler.currentScopeDepth;
+    compiler.locals[compiler.localCount++] = local;
+
+    if (parser.current.type == TOKEN_EQUAL) {
+      consume(TOKEN_EQUAL, "Expect '=' after variable name");
+      expression();
+    } else {
+      emitByte(OP_NIL);
+    }
+    consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
+  }
 }
 
 static void expressionStatement() {
@@ -175,7 +195,17 @@ static void expressionStatement() {
 }
 
 static void beginScope() { compiler.currentScopeDepth++; }
-static void endScope() { compiler.currentScopeDepth--; }
+
+static void endScope() {
+  compiler.currentScopeDepth--;
+  while (compiler.localCount > 0 &&
+         compiler.locals[compiler.localCount - 1].depth >
+             compiler.currentScopeDepth) {
+    emitByte(OP_POP);
+    compiler.localCount--;
+  }
+}
+
 static void block() {
   while (parser.current.type != TOKEN_RIGHT_BRACE) {
     statement();
@@ -222,7 +252,8 @@ static void parsePrecedence(Precedence precedence) {
   advance();
   ParseFn prefixFn = getRule(parser.previous.type)->prefix;
   if (prefixFn == NULL) {
-    // TODO: Handle error: expected expression
+    // TODO: Handle error: expected expression, maybe needs a fix
+    errorAt(&parser.previous, "Expected expression");
     return;
   }
   bool canAssign = precedence <= PREC_ASSIGNMENT;
@@ -252,35 +283,59 @@ static void number(bool canAssign) {
   emitByte(emitConstant(makeNumber(value)));
 }
 
-static void variable(bool canAssign) {
-  (void)canAssign;
-  uint8_t index =
-      emitConstant(makeString(parser.previous.start, parser.previous.length));
-
-  if (canAssign && parser.current.type == TOKEN_EQUAL) {
-    advance();
-    expression();
-    if (compiler.currentScopeDepth > 0) {
-      emitByte(OP_SET_LOCAL);
-      emitByte(index);
-    }
-
-    emitByte(OP_SET_GLOBAL);
-    emitByte(index);
+static bool identifiersEqual(Token *a, Token *b) {
+  if (a->length != b->length) {
+    return false;
   }
+  return memcmp(a->start, b->start, a->length) == 0;
+}
 
-  emitByte(OP_GET_GLOBAL);
-  emitByte(index);
+static int resolveLocal(Token *name) {
+  for (int i = compiler.localCount - 1; i >= 0; i--) {
+    Local *local = &compiler.locals[i];
+    if (identifiersEqual(&local->name, name)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+static void variable(bool canAssign) {
+  int localIndex = resolveLocal(&parser.previous);
+
+  if (localIndex != -1) {
+    if (canAssign && parser.current.type == TOKEN_EQUAL) {
+      advance();
+      expression();
+      emitByte(OP_SET_LOCAL);
+      emitByte((uint8_t)localIndex);
+    } else {
+      emitByte(OP_GET_LOCAL);
+      emitByte((uint8_t)localIndex);
+    }
+  } else {
+    uint8_t globalIndex =
+        emitConstant(makeString(parser.previous.start, parser.previous.length));
+
+    if (canAssign && parser.current.type == TOKEN_EQUAL) {
+      advance();
+      expression();
+      emitByte(OP_SET_GLOBAL);
+      emitByte(globalIndex);
+    } else {
+      emitByte(OP_GET_GLOBAL);
+      emitByte(globalIndex);
+    }
+  }
 }
 
 static void binary(bool canAssign) {
   (void)canAssign;
-  // if there is "5 + 3 / 1", need to handle the precedence and call the
+
   TokenType operatorType = parser.previous.type;
   ParseRule *rule = getRule(operatorType);
   parsePrecedence((Precedence)(rule->precedence + 1));
 
-  // parsePrecedence again
   switch (operatorType) {
   case TOKEN_PLUS: {
     emitByte(OP_ADD);
