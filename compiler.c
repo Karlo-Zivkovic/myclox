@@ -117,6 +117,7 @@ static void number(bool canAssign);
 static void variable(bool canAssign);
 static void binary(bool canAssign);
 static void unary(bool canAssign);
+static void literal(bool canAssign);
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
@@ -184,15 +185,35 @@ static void varStatement() {
   }
 }
 
-static void expressionStatement() {
-  // advance();
-  /* uint8_t globalIndex = */
-  /*     emitConstant(makeString(parser.previous.start,
-   * parser.previous.length)); */
+static void patchJump(int offset) {
+  int jump = currentChunk->count - offset - 2;
+  if (jump > UINT16_MAX) {
+    errorAt(&parser.previous, "Jump too large");
+  }
+  currentChunk->code[offset] = (jump >> 8) & 0xFF;
+  currentChunk->code[offset + 1] = jump & 0xFF;
+}
+
+static int emitJump(uint8_t instruction) {
+  emitByte(instruction);
+  emitByte(0xFF);
+  emitByte(0xFF);
+  return currentChunk->count - 2;
+}
+
+static void ifStatement() {
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after if.");
   expression();
-  /* emitByte(OP_DEFINE_GLOBAL); */
-  /* emitByte(globalIndex); */
-  ///
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition");
+
+  int jumpIndex = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+  statement();
+  patchJump(jumpIndex);
+}
+
+static void expressionStatement() {
+  expression();
   advance();
 }
 
@@ -228,6 +249,9 @@ static void statement() {
     beginScope();
     block();
     endScope();
+  } else if (parser.current.type == TOKEN_IF) {
+    advance();
+    ifStatement();
   } else {
     expressionStatement();
   }
@@ -237,15 +261,18 @@ static void statement() {
   }
 }
 
-ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
-                     [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
-                     [TOKEN_STRING] = {string, NULL, PREC_NONE},
-                     [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
-                     [TOKEN_BANG] = {unary, NULL, PREC_TERM}
+ParseRule rules[] = {
+    [TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
+    [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
+    [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
+    [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
+    [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
+    [TOKEN_STRING] = {string, NULL, PREC_NONE},
+    [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
+    [TOKEN_BANG] = {unary, NULL, PREC_NONE},
+    [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
+    [TOKEN_TRUE] = {literal, NULL, PREC_NONE},
 
 };
 
@@ -269,6 +296,23 @@ static void parsePrecedence(Precedence precedence) {
   }
   if (!canAssign && parser.current.type == TOKEN_EQUAL) {
     errorAt(&parser.current, "Invalid assignment target.");
+  }
+}
+
+static void literal(bool canAssign) {
+  (void)canAssign;
+  switch (parser.previous.type) {
+  case TOKEN_TRUE: {
+    emitByte(OP_TRUE);
+    break;
+  }
+  case TOKEN_FALSE: {
+    emitByte(OP_FALSE);
+    break;
+  }
+  default: {
+    return;
+  }
   }
 }
 

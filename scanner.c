@@ -41,6 +41,11 @@ bool matchKeyword(const char *keyword, const char *lexeme, int length) {
 
 TokenType keyword(const char *lexeme) {
   switch (lexeme[0]) {
+  case 'i': {
+    if (matchKeyword("if", lexeme, 2))
+      return TOKEN_IF;
+    break;
+  }
   case 'v':
     if (matchKeyword("var", lexeme, 3))
       return TOKEN_VAR;
@@ -49,7 +54,14 @@ TokenType keyword(const char *lexeme) {
     if (matchKeyword("print", lexeme, 5))
       return TOKEN_PRINT;
     break;
-    // ... other cases
+  case 't':
+    if (matchKeyword("true", lexeme, 4))
+      return TOKEN_TRUE;
+    break;
+  case 'f':
+    if (matchKeyword("false", lexeme, 5))
+      return TOKEN_FALSE;
+    break;
   }
 
   // it has to be identifier
@@ -141,6 +153,12 @@ Token scanToken() {
   }
 
   switch (c) {
+  case '(': {
+    return makeToken(TOKEN_LEFT_PAREN);
+  }
+  case ')': {
+    return makeToken(TOKEN_RIGHT_PAREN);
+  }
   case '{': {
     return makeToken(TOKEN_LEFT_BRACE);
   }

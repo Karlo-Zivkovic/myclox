@@ -1,9 +1,8 @@
+#include "stdbool.h"
+
 #pragma once
 
-typedef enum {
-  VAL_NUMBER,
-  VAL_STRING,
-} ValueType;
+typedef enum { VAL_NUMBER, VAL_STRING, VAL_BOOL, VAL_NIL } ValueType;
 
 typedef struct {
   char *chars;
@@ -15,6 +14,7 @@ typedef struct {
   union {
     double number;
     String *string;
+    bool boolean;
   } as;
 } Value;
 
@@ -34,3 +34,4 @@ Value addValues(Value a, Value b);
 Value makeString(const char *string, int length);
 void printValue(Value value);
 void negateValue(Value *value);
+Value makeNil();

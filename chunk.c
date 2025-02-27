@@ -118,6 +118,16 @@ void debugChunk(Chunk *chunk) {
       offset += 1;
       break;
     }
+    case OP_TRUE: {
+      printf("OP_TRUE\n");
+      offset += 1;
+      break;
+    }
+    case OP_FALSE: {
+      printf("OP_FALSE\n");
+      offset += 1;
+      break;
+    }
     case OP_POP: {
       printf("OP_POP\n");
       offset += 1;
@@ -126,6 +136,11 @@ void debugChunk(Chunk *chunk) {
     case OP_NOT: {
       printf("OP_NOT\n");
       offset += 1;
+      break;
+    }
+    case OP_JUMP_IF_FALSE: {
+      printf("OP_JUMP_IF_FALSE\n");
+      offset += 3;
       break;
     }
     }

@@ -81,7 +81,20 @@ void printValue(Value value) {
     printf("%s\n", string->chars);
     break;
   }
+  case VAL_BOOL: {
+    printf(value.as.boolean ? "true" : "false");
+    break;
   }
+  case VAL_NIL:
+    printf("nil");
+    break;
+  }
+}
+
+Value makeNil() {
+  Value value;
+  value.type = VAL_NIL;
+  return value;
 }
 
 String *createString(const char *chars, int length) {
@@ -111,8 +124,8 @@ void freeValue(Value value) {
   case VAL_STRING:
     freeString(value.as.string);
     break;
-  case VAL_NUMBER: {
-    break;
+  default: {
+    return;
   }
   }
 }

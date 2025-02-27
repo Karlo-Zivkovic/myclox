@@ -37,6 +37,16 @@ static void freeVM() {
   initVM();
 };
 
+static bool isFalsey(Value value) {
+  if (value.type == VAL_NIL) {
+    return true;
+  }
+  if (value.type == VAL_BOOL) {
+    return !value.as.boolean;
+  }
+  return false;
+}
+
 static InterpretResult run() {
   for (;;) {
     switch (*vm.ip++) {
@@ -105,11 +115,34 @@ static InterpretResult run() {
       break;
     }
     case OP_NIL: {
-      // TODO: SOLVE THE NILL VALUE, and push it on the stack
+      push(makeNil());
       break;
     }
     case OP_POP: {
       pop();
+      break;
+    }
+    case OP_TRUE: {
+      Value value;
+      value.type = VAL_BOOL;
+      value.as.boolean = true;
+      push(value);
+      break;
+    }
+    case OP_FALSE: {
+      Value value;
+      value.type = VAL_BOOL;
+      value.as.boolean = false;
+      push(value);
+      break;
+    }
+    case OP_JUMP_IF_FALSE: {
+      uint16_t offset = (uint16_t)((*vm.ip << 8) | *(vm.ip + 1));
+      vm.ip += 2;
+
+      if (isFalsey(vm.stackTop[-1])) {
+        vm.ip += offset;
+      }
       break;
     }
     case OP_RETURN: {
