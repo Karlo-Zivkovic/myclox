@@ -77,7 +77,7 @@ static InterpretResult run() {
         printf("Failed to set global variable '%s' \n", key.as.string->chars);
         return INTERPRET_RUNTIME_ERROR;
       }
-      pop();
+      // pop();
       break;
     }
     case OP_GET_GLOBAL: {
@@ -114,6 +114,12 @@ static InterpretResult run() {
     }
     case OP_RETURN: {
       return INTERPRET_OK;
+    }
+    case OP_NOT: {
+      // Value value = *(vm.stackTop - 1);
+      Value *value = vm.stackTop - 1;
+      negateValue(value);
+      break;
     }
     }
   }

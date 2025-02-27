@@ -123,6 +123,11 @@ void debugChunk(Chunk *chunk) {
       offset += 1;
       break;
     }
+    case OP_NOT: {
+      printf("OP_NOT\n");
+      offset += 1;
+      break;
+    }
     }
   }
   printf("=== end of CHUNK ===\n\n");

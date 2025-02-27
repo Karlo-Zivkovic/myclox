@@ -116,3 +116,10 @@ void freeValue(Value value) {
   }
   }
 }
+
+void negateValue(Value *value) {
+  if (value->type == VAL_NUMBER) {
+    value->as.number = -value->as.number;
+  }
+  // TODO: Do i negate string here?
+}

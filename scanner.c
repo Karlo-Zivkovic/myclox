@@ -162,6 +162,12 @@ Token scanToken() {
   case '+': {
     return makeToken(TOKEN_PLUS);
   }
+  case '!': {
+    if (peekNext() == '=') {
+      return makeToken(TOKEN_BANG_EQUAL);
+    }
+    return makeToken(TOKEN_BANG);
+  }
   }
   return errorToken("Unexpected character.");
 }

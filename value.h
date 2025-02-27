@@ -33,3 +33,4 @@ Value makeNumber(double num);
 Value addValues(Value a, Value b);
 Value makeString(const char *string, int length);
 void printValue(Value value);
+void negateValue(Value *value);

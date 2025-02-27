@@ -72,7 +72,8 @@ static void errorAt(Token *token, const char *message) {
   if (token->type == TOKEN_EOF) {
     fprintf(stderr, " at end");
   } else if (token->type == TOKEN_ERROR) {
-    // Nothing } else {
+    // Nothing
+  } else {
     fprintf(stderr, " at '%.*s'", token->length, token->start);
   }
   fprintf(stderr, ": '%s'\n", message);
@@ -115,6 +116,7 @@ static void string(bool canAssign);
 static void number(bool canAssign);
 static void variable(bool canAssign);
 static void binary(bool canAssign);
+static void unary(bool canAssign);
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
@@ -242,7 +244,8 @@ ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
                      [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
                      [TOKEN_STRING] = {string, NULL, PREC_NONE},
                      [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
-                     [TOKEN_PLUS] = {NULL, binary, PREC_TERM}
+                     [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
+                     [TOKEN_BANG] = {unary, NULL, PREC_TERM}
 
 };
 
@@ -326,6 +329,26 @@ static void variable(bool canAssign) {
       emitByte(OP_GET_GLOBAL);
       emitByte(globalIndex);
     }
+  }
+}
+
+static void unary(bool canAssign) {
+  (void)canAssign;
+  TokenType operatorType = parser.previous.type;
+
+  parsePrecedence(PREC_UNARY);
+
+  switch (operatorType) {
+  case TOKEN_BANG:
+    emitByte(OP_NOT);
+    break;
+  case TOKEN_MINUS: {
+    emitByte(OP_NEGATE);
+    break;
+  }
+  default: {
+    return;
+  }
   }
 }
 

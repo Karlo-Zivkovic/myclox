@@ -1,10 +1,7 @@
-{
-  var a = "before";
-  print a; // expect: before
+{} // By itself.
 
-  a = "after";
-  print a; // expect: after
+// In a statement.
+if (true) {}
+if (false) {} else {}
 
-  print a = "arg"; // expect: arg
-  print a; // expect: arg
-}
+print "ok"; // expect: ok
