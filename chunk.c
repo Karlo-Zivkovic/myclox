@@ -139,9 +139,18 @@ void debugChunk(Chunk *chunk) {
       break;
     }
     case OP_JUMP_IF_FALSE: {
-      printf("OP_JUMP_IF_FALSE\n");
+      uint16_t jump =
+          (uint16_t)((chunk->code[offset + 1] << 8) | chunk->code[offset + 2]);
+      printf("OP_JUMP_IF_FALSE %d\n", jump);
       offset += 3;
       break;
+    }
+    case OP_JUMP: {
+      uint16_t jump =
+          (uint16_t)((chunk->code[offset + 1] << 8) | chunk->code[offset + 2]);
+      printf("OP_JUMP %d\n", jump);
+      offset += 3;
+      break; // You're missing this break statement
     }
     }
   }

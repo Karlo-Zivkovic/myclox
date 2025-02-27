@@ -206,10 +206,20 @@ static void ifStatement() {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition");
 
-  int jumpIndex = emitJump(OP_JUMP_IF_FALSE);
+  int thenJumpIndex = emitJump(OP_JUMP_IF_FALSE);
   emitByte(OP_POP);
   statement();
-  patchJump(jumpIndex);
+
+  int elseJumpIndex = emitJump(OP_JUMP);
+  patchJump(thenJumpIndex);
+  emitByte(OP_POP);
+
+  if (parser.current.type == TOKEN_ELSE) {
+    advance();
+    statement();
+  }
+
+  patchJump(elseJumpIndex);
 }
 
 static void expressionStatement() {
@@ -243,7 +253,6 @@ static void statement() {
   } else if (parser.current.type == TOKEN_VAR) {
     advance();
     varStatement();
-
   } else if (parser.current.type == TOKEN_LEFT_BRACE) {
     advance();
     beginScope();

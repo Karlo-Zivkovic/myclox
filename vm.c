@@ -136,6 +136,11 @@ static InterpretResult run() {
       push(value);
       break;
     }
+    case OP_JUMP: {
+      uint16_t offset = (uint16_t)((*vm.ip << 8) | *(vm.ip + 1));
+      vm.ip += offset + 2;
+      break;
+    }
     case OP_JUMP_IF_FALSE: {
       uint16_t offset = (uint16_t)((*vm.ip << 8) | *(vm.ip + 1));
       vm.ip += 2;

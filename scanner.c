@@ -41,6 +41,11 @@ bool matchKeyword(const char *keyword, const char *lexeme, int length) {
 
 TokenType keyword(const char *lexeme) {
   switch (lexeme[0]) {
+  case 'e': {
+    if (matchKeyword("else", lexeme, 4))
+      return TOKEN_ELSE;
+    break;
+  }
   case 'i': {
     if (matchKeyword("if", lexeme, 2))
       return TOKEN_IF;
