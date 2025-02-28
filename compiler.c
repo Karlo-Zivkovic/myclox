@@ -1,9 +1,9 @@
 #include "compiler.h"
 #include "chunk.h"
 #include "scanner.h"
-#include "stdio.h"
 #include "value.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -248,6 +248,31 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
+static void emitLoop(int loopStart) {
+  emitByte(OP_LOOP);
+  int offset = currentChunk->count - loopStart + 2;
+  if (offset > UINT16_MAX) {
+    errorAt(&parser.previous, "Loop body too large.");
+  }
+  emitByte((offset >> 8) & 0xFF);
+  emitByte(offset & 0xFF);
+};
+
+static void whileStatement() {
+  int loopStart = currentChunk->count;
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+  int exitJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+  statement();
+  emitLoop(loopStart);
+
+  patchJump(exitJump);
+  emitByte(OP_POP);
+}
+
 static void statement() {
   if (parser.current.type == TOKEN_PRINT) {
     advance();
@@ -263,6 +288,9 @@ static void statement() {
   } else if (parser.current.type == TOKEN_IF) {
     advance();
     ifStatement();
+  } else if (parser.current.type == TOKEN_WHILE) {
+    advance();
+    whileStatement();
   } else {
     expressionStatement();
   }
@@ -284,7 +312,9 @@ ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
                      [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
                      [TOKEN_TRUE] = {literal, NULL, PREC_NONE},
                      [TOKEN_AND] = {NULL, and_, PREC_AND},
-                     [TOKEN_OR] = {NULL, or_, PREC_OR}
+                     [TOKEN_OR] = {NULL, or_, PREC_OR},
+                     [TOKEN_GREATER] = {NULL, binary, PREC_COMPARISON},
+                     [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON}
 
 };
 
@@ -437,6 +467,14 @@ static void binary(bool canAssign) {
   parsePrecedence((Precedence)(rule->precedence + 1));
 
   switch (operatorType) {
+  case TOKEN_LESS: {
+    emitByte(OP_LESS);
+    break;
+  }
+  case TOKEN_GREATER: {
+    emitByte(OP_GREATER);
+    break;
+  }
   case TOKEN_PLUS: {
     emitByte(OP_ADD);
     break;

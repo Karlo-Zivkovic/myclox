@@ -1,6 +1,6 @@
-#include "stdbool.h"
-
 #pragma once
+
+#include <stdbool.h>
 
 typedef enum { VAL_NUMBER, VAL_STRING, VAL_BOOL, VAL_NIL } ValueType;
 
@@ -35,3 +35,4 @@ Value makeString(const char *string, int length);
 void printValue(Value value);
 void negateValue(Value *value);
 Value makeNil();
+Value compareValues(Value a, Value b, char operator_);

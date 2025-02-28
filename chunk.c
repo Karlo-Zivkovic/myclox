@@ -1,10 +1,9 @@
 #include "chunk.h"
-#include "common.h"
-#include "stddef.h"
-#include "stdlib.h"
 #include "value.h"
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void initChunk(Chunk *chunk) {
   chunk->count = 0;
@@ -118,6 +117,16 @@ void debugChunk(Chunk *chunk) {
       offset += 1;
       break;
     }
+    case OP_LESS: {
+      printf("OP_LESS\n");
+      offset += 1;
+      break;
+    }
+    case OP_GREATER: {
+      printf("OP_GREATER\n");
+      offset += 1;
+      break;
+    }
     case OP_TRUE: {
       printf("OP_TRUE\n");
       offset += 1;
@@ -150,7 +159,14 @@ void debugChunk(Chunk *chunk) {
           (uint16_t)((chunk->code[offset + 1] << 8) | chunk->code[offset + 2]);
       printf("OP_JUMP %d\n", jump);
       offset += 3;
-      break; // You're missing this break statement
+      break;
+    }
+    case OP_LOOP: {
+      uint16_t jump =
+          (uint16_t)((chunk->code[offset + 1] << 8) | chunk->code[offset + 2]);
+      printf("OP_LOOP %d\n", jump);
+      offset += 3;
+      break;
     }
     }
   }

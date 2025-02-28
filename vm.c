@@ -1,11 +1,11 @@
 #include "vm.h"
 #include "chunk.h"
 #include "compiler.h"
-#include "stddef.h"
-#include "stdio.h"
 #include "table.h"
 #include "value.h"
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 VM vm;
@@ -78,6 +78,20 @@ static InterpretResult run() {
       push(addValues(a, b));
       break;
     }
+    case OP_LESS: {
+      Value b = pop();
+      Value a = pop();
+      Value result = compareValues(a, b, '<');
+      push(result);
+      break;
+    }
+    case OP_GREATER: {
+      Value b = pop();
+      Value a = pop();
+      Value result = compareValues(a, b, '>');
+      push(result);
+      break;
+    }
     case OP_SET_GLOBAL: {
       uint8_t index = *vm.ip++;
       Value key = vm.chunk->constants.values[index];
@@ -100,6 +114,7 @@ static InterpretResult run() {
         return INTERPRET_RUNTIME_ERROR;
       }
 
+      //  printValue(value);
       push(value);
       break;
     }
@@ -134,6 +149,12 @@ static InterpretResult run() {
       value.type = VAL_BOOL;
       value.as.boolean = false;
       push(value);
+      break;
+    }
+    case OP_LOOP: {
+      uint16_t offset = (uint16_t)((*vm.ip << 8) | *(vm.ip + 1));
+      vm.ip += 2;
+      vm.ip -= offset;
       break;
     }
     case OP_JUMP: {

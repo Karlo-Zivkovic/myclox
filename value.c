@@ -1,7 +1,7 @@
 #include "value.h"
-#include "stdlib.h"
 #include "vm.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void initValueArray(ValueArray *constants) {
@@ -135,4 +135,25 @@ void negateValue(Value *value) {
     value->as.number = -value->as.number;
   }
   // TODO: Do i negate string here?
+}
+
+Value compareValues(Value a, Value b, char operator_) {
+  if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
+    // TODO: Report error and return INTERPRET_RUNTIME_ERROR
+  }
+
+  Value result;
+  result.type = VAL_BOOL;
+  switch (operator_) {
+  case '<':
+    result.as.boolean = a.as.number < b.as.number;
+    break;
+  case '>':
+    result.as.boolean = a.as.number > b.as.number;
+    break;
+  default:
+    result.as.boolean = false;
+  }
+
+  return result;
 }

@@ -1,6 +1,6 @@
 #include "scanner.h"
-#include "stdbool.h"
-#include "stdio.h"
+#include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef struct {
@@ -41,6 +41,11 @@ bool matchKeyword(const char *keyword, const char *lexeme, int length) {
 
 TokenType keyword(const char *lexeme) {
   switch (lexeme[0]) {
+  case 'w': {
+    if (matchKeyword("while", lexeme, 5))
+      return TOKEN_WHILE;
+    break;
+  }
   case 'e': {
     if (matchKeyword("else", lexeme, 4))
       return TOKEN_ELSE;
@@ -181,6 +186,12 @@ Token scanToken() {
   }
   case '"': {
     return string();
+  }
+  case '<': {
+    return makeToken(TOKEN_LESS);
+  }
+  case '>': {
+    return makeToken(TOKEN_GREATER);
   }
   case '+': {
     return makeToken(TOKEN_PLUS);
