@@ -118,6 +118,8 @@ static void variable(bool canAssign);
 static void binary(bool canAssign);
 static void unary(bool canAssign);
 static void literal(bool canAssign);
+static void and_(bool canAssign);
+static void or_(bool canAssign);
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
@@ -270,18 +272,19 @@ static void statement() {
   }
 }
 
-ParseRule rules[] = {
-    [TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
-    [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
-    [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
-    [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
-    [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
-    [TOKEN_STRING] = {string, NULL, PREC_NONE},
-    [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
-    [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
-    [TOKEN_BANG] = {unary, NULL, PREC_NONE},
-    [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
-    [TOKEN_TRUE] = {literal, NULL, PREC_NONE},
+ParseRule rules[] = {[TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
+                     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
+                     [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
+                     [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
+                     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
+                     [TOKEN_STRING] = {string, NULL, PREC_NONE},
+                     [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
+                     [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
+                     [TOKEN_BANG] = {unary, NULL, PREC_NONE},
+                     [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
+                     [TOKEN_TRUE] = {literal, NULL, PREC_NONE},
+                     [TOKEN_AND] = {NULL, and_, PREC_AND},
+                     [TOKEN_OR] = {NULL, or_, PREC_OR}
 
 };
 
@@ -306,6 +309,27 @@ static void parsePrecedence(Precedence precedence) {
   if (!canAssign && parser.current.type == TOKEN_EQUAL) {
     errorAt(&parser.current, "Invalid assignment target.");
   }
+}
+
+static void or_(bool canAssign) {
+  (void)canAssign;
+  int elseJump = emitJump(OP_JUMP_IF_FALSE);
+  int endJump = emitJump(OP_JUMP);
+
+  patchJump(elseJump);
+  emitByte(OP_POP);
+
+  parsePrecedence(PREC_OR);
+  patchJump(endJump);
+}
+
+static void and_(bool canAssign) {
+  (void)canAssign;
+  int endJump = emitJump(OP_JUMP_IF_FALSE);
+
+  emitByte(OP_POP);
+  parsePrecedence(PREC_AND);
+  patchJump(endJump);
 }
 
 static void literal(bool canAssign) {

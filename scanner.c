@@ -185,8 +185,23 @@ Token scanToken() {
   case '+': {
     return makeToken(TOKEN_PLUS);
   }
+  case '|': {
+    if (peek() == '|') {
+      advance();
+      return makeToken(TOKEN_OR);
+    }
+    break;
+  }
+  case '&': {
+    if (peek() == '&') {
+      advance();
+      return makeToken(TOKEN_AND);
+    }
+    break;
+  }
   case '!': {
-    if (peekNext() == '=') {
+    if (peek() == '=') {
+      advance();
       return makeToken(TOKEN_BANG_EQUAL);
     }
     return makeToken(TOKEN_BANG);
